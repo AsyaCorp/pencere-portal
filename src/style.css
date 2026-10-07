@@ -11,3 +11,129 @@ canvas {
   inset: 0;
   display: block;
 }
+
+#titan[hidden] {
+  display: none;
+}
+
+#tflash {
+  position: fixed;
+  inset: 0;
+  background: #ffe2c2;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#tlabel {
+  position: fixed;
+  left: 18px;
+  top: 16px;
+  font: 400 10px/1.7 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.32em;
+  color: rgba(255, 232, 214, 0.72);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+#tlabel span {
+  color: rgba(255, 232, 214, 0.48);
+}
+
+#tlabel b {
+  color: #ff3b1f;
+  font-weight: 500;
+}
+
+#titan {
+  cursor: none;
+}
+
+#tcross {
+  position: fixed;
+  left: -14px;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  opacity: 0.45;
+  transition: opacity 0.12s;
+}
+
+#tcross::before,
+#tcross::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: #ffe8d6;
+}
+
+#tcross::before {
+  width: 28px;
+  height: 1px;
+}
+
+#tcross::after {
+  width: 1px;
+  height: 28px;
+}
+
+#tcross.ok {
+  opacity: 1;
+}
+
+#tcross.ok::before,
+#tcross.ok::after {
+  background: #ff3b1f;
+  box-shadow: 0 0 6px #ff3b1f;
+}
+
+#tcross[hidden],
+#ttoast[hidden] {
+  display: none;
+}
+
+#ttoast {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 22%;
+  text-align: center;
+  pointer-events: none;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  color: #ffe8d6;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
+}
+
+#ttoast b {
+  display: block;
+  font-weight: 500;
+  font-size: clamp(22px, 6vw, 54px);
+  letter-spacing: 0.24em;
+}
+
+#ttoast span {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: rgba(255, 232, 214, 0.62);
+}
+
+#ttoast.pop b {
+  animation: tpop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes tpop {
+  from {
+    transform: scale(1.35);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ttoast.pop b {
+    animation: none;
+  }
+}

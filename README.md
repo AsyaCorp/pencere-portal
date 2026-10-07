@@ -2,6 +2,8 @@
 
 Birden fazla tarayıcı penceresi tek bir görev kontrol ekranının monitörleri gibi davranır. Ekranın ortasında dönen tel kafes bir Dünya, onun etrafında uydu yörüngeleri ve bütün ekranı kaplayan bir koordinat gridi var; her pencere bunun bir parçasını gösterir. Pencereleri üst üste bindirerek sondaya (PRB-1) yol açar, onu kırmızı kenetlenme hedefine (DOCK) ulaştırırsın.
 
+İkinci bir mod olarak **Titan modu** da var (T tuşu ya da `?mod=titan`). Aynı pencere mekaniği bu kez kızıl bir gün batımında, surla çevrili üç boyutlu bir şehirde, gerçek insan modelleriyle çalışır. Ayrıntılar aşağıdaki [Titan modu](#titan-modu) bölümünde.
+
 Esin: [Bjørn Staal, multipleWindow3dScene](https://github.com/bgstaal/multipleWindow3dScene).
 
 ## Çalıştırma
@@ -18,6 +20,7 @@ Chrome'da `http://localhost:5173/` adresini aç. Ek pencereleri sayfadayken **N*
 | Space | Sondayı ilk (en eski) pencerenin ortasından rastgele fırlat     |
 | R     | Görevi sıfırla                                                  |
 | N     | Yeni pencere aç                                                 |
+| T     | HUD ile Titan modu arasında geç (bütün pencerelerde aynı anda)  |
 
 Kurallar: Sonda yalnız pencerelerin içinde var olabilir. Kenara çarptığında orada başka bir pencere üst üste biniyorsa karşıya geçer (`HANDOFF TRK-01 > TRK-02`), binmiyorsa beyaz bir çarpma işareti bırakıp seker. Fırlatma açısı eksenlere hiçbir zaman 15°'den yakın olmaz. Sonda 20 sn boyunca başka pencereye geçemezse yönü hafifçe rastgele değişir. Hedef bir pencerenin içindeyse ve sonda ona 150 px yaklaşırsa kilitlenir (`LOCK`): köşe parantezleri daralır, sonda yumuşak bir yaklaşma çizgisiyle hedefe süzülür. Kenetlenince bütün pencerelerde aynı anda beyaz bir tarama çizgisi ekranı süpürür ve `DOCKED / MISSION NN` yazısı çıkar. 1,5 sn sonra yeni hedef başka bir köşede belirir. Geçit için iki pencerenin örtüşen kenarı en az 28 px olmalı.
 
@@ -57,3 +60,79 @@ Kurallar: Sonda yalnız pencerelerin içinde var olabilir. Kenara çarptığınd
    - Sondanın içinde olduğu pencereyi hızlı sürüklersen sonda pencereyle birlikte taşınır.
    - Yavaş hareketler hem okunaklı hem etkileyici görünür.
    - Kırmızıyı yalnız kilit anına saklamak için ilk karelerde hedefi kadraj dışında tut.
+
+## Titan modu
+
+`http://localhost:5173/?mod=titan` ile ya da herhangi bir pencerede **T** ile açılır; T bütün pencereleri aynı anda çevirir, tekrar basınca HUD'a döner. Pencere senkronu, lider devri ve N ortaktır; oyun ve çizim `src/titan/` altında ayrı durur.
+
+| Tuş   | İş                                                    |
+| ----- | ----------------------------------------------------- |
+| Space | Askerleri başlat (sahne başta durur)                  |
+| R     | Titan sahnesini sıfırla                               |
+| N     | Yeni pencere aç (açık modda)                          |
+| T     | HUD moduna dön                                        |
+
+**Dünya:**
+
+- three.js ile çizilen tek bir 3B sahne. Ekran büyük bir "portal" gibi davranır: göz ekranın önünde sabit durur, her pencere kendi ekran konumuna göre eğik (off-axis) bir izdüşümle bu sahnenin kendine düşen parçasını gösterir. Bu yüzden gökyüzü, sur, şehir ve Colossal pencereler arasında kaymadan birleşir.
+- Bütün ekrana yayılan tek bir gün batımı: shader ile bordo-turuncu gökyüzü, katmanlı bulutlar ve surun hemen üstünde batan güneş.
+- Ekran boyunca uzanan dev taş sur, önünde kırmızı kiremitli, ahşap çatkılı (fachwerk) evlerden oluşan sık bir şehir, çan kuleleri, bacalardan yükselen duman ve askerlerin hedefi olan taş gözetleme kulesi. Kule ekran genişliğinin %62'sindedir.
+- Arkadan vuran gün ışığı gölge düşürür, karakterlerin kenarları sıcak bir çizgiyle parlar. Uzaklar sise gömülür, havada kor süzülür, bloom ile ışıklar hafif taşar.
+- Zemin ekran yüksekliğinin %80'inde sabit bir çizgidir ve yalnız o çizgiyi içeren pencerelerde vardır. Pencereler arasındaki boşluk uçurumdur.
+
+**Karakterler:**
+
+- **Askerler.** Rig'li ve animasyonlu insan modeli; yeşil pelerin koşarken ve salınırken dalgalanır. Kanca halatları ve her salınışta gaz püskürmesi var.
+- **Devler (saf titanlar).** Gerçekçi insan bedenleri: çıplak ten, uzun kollar, kimi iri kimi küçük kafa, yüzlerinde fazla geniş, donuk bir sırıtma (yüz blendshape'leri abartılarak). Yürüme, koşma ve bekleme animasyonları bu iskelete dünya uzayında yeniden hedeflenir. Başları yavaşça yana düşer ve izleyiciye döner.
+- **Colossal Titan.** Gerçek bir 3B kafa taramasının üzerine derisiz kas dokusu (yüzün ortasından yelpaze gibi açılan lifler), yanaklarda açıkta dişler ve kızıl parlayan gözler.
+
+**Kurallar:**
+
+- **Askerler.** 5 asker, zemini olan en soldaki pencerede başlar ve kuleye koşar. Önlerinde uçurum varsa ve karşı pencerede 280 px içinde tutunacak bir yapı (çatı, kule, sur kenarı) görünüyorsa kanca atıp ipe tutunarak karşıya salınırlar. Yapı daha uzaktaysa kenarda bekleyip el sallarlar.
+- **Devler.** 4 dev, askerlerin arkasından en yakın askere yürür; ağızlarından ve enselerinden buhar çıkar. Arada biri bir askeri fark edip koşmaya başlar. Atlayamaz, kanca atamazlar: uçuruma gelince kenarda durur, kolunu boşluğa uzatıp öfkeyle sallanırlar.
+- **Pencerelerin etkisi.** Pencereleri ayırırsan devler geride kalır. Birleştirirsen zemin birleşir ve devler de geçer.
+- **Yakalanma.** Dev bir askere yetişirse asker bir buhar bulutunda kaybolur. Sol üstteki `SOLDIERS n/5` sayacı düşer. Üçten az asker kalırsa sahne 3 sn sonra sıfırlanır.
+- **Final.** Üç asker kulenin tepesine çıkınca zemin sarsılır, gökyüzü kararır ve surun arkasından Colossal Titan yükselir. Yüzü ve omuzları birden fazla pencereye bölünmüş görünür; yalnız gözleri hafif kızıl parlar ve her yanından buhar yükselir. Ardından bütün pencerelerde aynı anda beyaz-turuncu şok dalgası, buhar patlaması ve sarsıntı gelir; 2 sn sonra sahne sıfırlanır. Her şey ortak saatle zamanlanır.
+
+### Reels çekimi (dikey 9:16)
+
+Dikey kadraj, ekranın ortasında **ekran yüksekliği × 9/16** genişliğinde bir şerittir. Örnek: 1710x986 ekranda yaklaşık 555 px, x 577–1132 arası. Dünya (HUD), kule ve Colossal'ın yüzü bu şeride sığacak biçimde yerleştirildi.
+
+1. Ekranı sadeleştir (masaüstü simgeleri gizli, Dock otomatik gizlenir, koyu duvar kâğıdı).
+2. Pencereleri şu sırayla aç ve şeride yerleştir:
+   - **Üst pencere.** Adresi normal bir Chrome penceresinde aç. Bu, en eski pencere olur ve lideri o tutar. Şeridin tam genişliğine, ekranın üst üçte birine yerleştir (örnek: 555x360, y 40). HUD'da Dünya'nın üst yarısını, Titan finalinde Colossal'ın gözlerini gösterir.
+   - **Sol alt pencere.** N ile aç. Yaklaşık 250 px genişliğinde olsun; ekran yüksekliğinin %45'inden altına kadar uzansın (örnek: 250x560, y 420). Zemin çizgisi (%80) içinde kalmalı; askerler ve devler burada başlar.
+   - **Sağ alt pencere.** Yine N ile aç. Sol alttakinin 30–40 px sağında olsun, şeridin sağ kenarına kadar uzansın (örnek: 265x560). Kule bu pencerenin içinde kalır.
+3. Kaydı başlat: `Cmd+Shift+5` ile tüm ekranı ya da OBS ile 60 fps kaydet. Sonra şeridi 9:16 olarak kırp. İnce çizgiler için retina çözünürlüğünde ve yüksek bit hızıyla kaydet.
+4. **HUD bölümü (ilk ~8 sn).**
+   - Dünya üç monitöre bölünmüş durumda; 1–2 sn dokunma.
+   - Bir alt pencereyi yavaşça kaydır: koordinatlar akar, harita kaymadan birleşir.
+   - Space ile sondayı fırlat; HANDOFF anını göster.
+5. **Geçiş.** **T**'ye bas. Üç pencere aynı karede görev kontrolünden kızıl gökyüzüne döner. Bu kesmesiz geçiş, iki modu bağlayan an. 1 sn bekle ki izleyici şehri ve devleri seçsin.
+6. **Kaçış.**
+   - Sağ alt pencereyi başta şeridin dışına, sağa çek (boşluk 280 px'ten geniş). Space'e bas: askerler kenarda bekleyip el sallar, devler buhar saçarak yaklaşır.
+   - Tam yetişecekken sağ pencereyi şeride geri sürükle (boşluk 30–40 px). Askerler kancayla karşıya salınır, devler kenarda kalıp boşluğa uzanır. Kabul ölçütündeki an bu.
+   - İstersen pencereleri bir an birleştir: devler de geçer. Hemen ayırınca yine geride kalırlar.
+7. **Final.**
+   - Üç asker kulenin tepesine çıkınca kayda dokunma: gökyüzü kararır ve Colossal'ın yüzü surun arkasından üst pencereyi doldurarak yükselir; burnu ve dişleri surun hemen üstünde kalır.
+   - Gözler kızarınca (~3,5 sn) şok dalgası gelir; her pencerede aynı anda patlar ve sarsar.
+   - Kaydı sahne sıfırlandıktan 1 sn sonra kes.
+8. İpuçları:
+   - Kule, ekran genişliğinin %62'sindedir. Kadrajı değiştirirsen sağ alt pencerenin kuleyi içermesine dikkat et.
+   - Askerler zemini olan en soldaki pencerede başlar. Devlerin arkadan gelmesi için kuleyi en sağda bırak.
+   - Sahne bir kayıtta beklemediğin bir yere gittiyse **R** ile sıfırla. Askerler Space'e kadar bekler.
+
+### Modeller ve lisanslar
+
+> Modeller depoda yok. Aşağıdaki bağlantılardan GLB olarak indirip `public/models/` altına tablodaki adlarla koy. `Soldier.glb` ve `Xbot.glb` three.js deposundaki `examples/models/gltf/` klasöründe.
+
+Resmî Attack on Titan materyali (stüdyo görselleri, müzik, logo) kullanılmaz. Şehir, sur, kule, gökyüzü ve efektler kodla üretilir. Karakterler Sketchfab'daki CC BY lisanslı **hayran yapımı** modellerdir (`public/models/`). Bunlar telifli karakterlerin türevleridir. Bir kısmı (Smiling Titan, Levi, Armin) büyük olasılıkla AoT oyunlarından çıkarılmıştır. Kendi bilgisayarında oynamak sorun değil; kaydı yayınlarsan telif bildirimi riski senin üzerindedir. Mixamo animasyonları, ad eşleyen bir dünya uzayı yeniden hedeflemesiyle bu Biped/Mixamo iskeletlerine aktarılır.
+
+| Dosya          | Kullanım                                  | Kaynak (CC BY 4.0, yazar)                                                                                                                                                  |
+| -------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Colossal.glb` | Colossal Titan (çığlık animasyonuyla)     | [Attack on Titan - Screaming Colossal](https://sketchfab.com/3d-models/3624c46aabc745fba12e305c527b4635), overlordofyou; model [Colossal Titan](https://sketchfab.com/3d-models/e031a57fd4bf411f8e893361676b4544), Sidaivan |
+| `Smiler.glb`   | Saf titanlar                              | [Aot Smiling Titan rig](https://sketchfab.com/3d-models/d697d4856d724144beccfd7471d9f5c9), ianadrielbravo                                                                   |
+| `Levi.glb`     | Askerler                                  | [Levi Ackerman rig](https://sketchfab.com/3d-models/01ffa989559941ef807cc07b3fed40b8), ianadrielbravo                                                                       |
+| `Armin.glb`    | Askerler                                  | [Aotwa_armin_arlelt rig](https://sketchfab.com/3d-models/eb79c080ba4645df8246bcf81ae8c759), ianadrielbravo                                                                  |
+| `Soldier.glb`  | Asker animasyonlarının kaynağı            | three.js örnekleri (Mixamo kökenli)                                                                                                                                        |
+| `Xbot.glb`     | Titan animasyonlarının kaynağı            | three.js örnekleri (Mixamo kökenli)                                                                                                                                        |

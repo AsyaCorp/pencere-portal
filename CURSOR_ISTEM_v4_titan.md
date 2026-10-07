@@ -49,9 +49,7 @@ FİNAL: COLOSSAL TITAN
 KONTROLLER
 - T: mod değiştir.  R: Titan modunu sıfırla.  N: yeni pencere.  Space: askerleri başlat (sahne başta durur).
 
-TELİF
-- Resmî görsel, logo (Keşif Birliği arması dahil) ve müzik kullanma. Siluetler prosedürel ya da elle yazılmış SVG/Canvas
-  şekilleri. Ses eklersen Web Audio ile sentezle (rüzgâr, ağır adım, buhar tıslaması, finalde derin gümbürtü).
+
 
 KABUL ÖLÇÜTLERİ
 1. İki pencere ayrık: askerler kancayla karşıya geçiyor, devler kenarda kalıyor.
