@@ -1,8 +1,9 @@
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
 import './style.css';
 import { createSync, readRect } from './sync.js';
 import { createState, launch, reset, update } from './game.js';
 import { createScene } from './scene.js';
-import { COLLAPSE } from './world/effects.js';
 
 // A fresh window listens for a moment before it may lead, so it picks up the
 // running game instead of broadcasting a brand new one over it.
@@ -12,8 +13,6 @@ const PERSIST_MAX_AGE = 3000;
 const BOUNCE_FX_GAP = 90;
 const MAX_EXTRAPOLATE_MS = 34;
 
-const levelEl = document.getElementById('level');
-const flashEl = document.getElementById('flash');
 const scene = createScene(document.getElementById('c'));
 const sync = createSync(onMessage);
 const bootAt = Date.now();
@@ -54,14 +53,6 @@ function onMessage(msg) {
 
 function showFx(fx) {
   scene.addFx(fx);
-  if (fx.kind === 'win') {
-    const anim = flashEl.animate([{ opacity: 0.85 }, { opacity: 0 }], {
-      duration: 650,
-      delay: COLLAPSE * 1000,
-      easing: 'ease-out',
-    });
-    anim.currentTime = Math.max(0, Date.now() - fx.t);
-  }
 }
 
 function emitFx(fx) {
@@ -76,6 +67,7 @@ function runCommand(cmd) {
   if (cmd === 'launch') launch(state, home);
   else if (cmd === 'reset') reset(state, screenBounds(), home);
   world.owner = null;
+  world.sinceHandoff = 0;
 }
 
 function command(cmd) {
@@ -146,8 +138,7 @@ function frame(t) {
   }
   wasLeader = leader;
 
-  scene.render(rect, viewOf(now, leader), now, sync.rects());
-  levelEl.textContent = state ? String(state.level) : '';
+  scene.render(rect, viewOf(now, leader), now, sync.rects(), sync.id);
   requestAnimationFrame(frame);
 }
 

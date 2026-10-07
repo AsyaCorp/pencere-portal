@@ -83,7 +83,7 @@ export function createSync(onMessage) {
   }
 
   function rects() {
-    return visibleWindows().map((w) => ({ id: w.id, ...w.rect }));
+    return visibleWindows().map((w) => ({ id: w.id, created: w.created, ...w.rect }));
   }
 
   const bye = () => send({ type: 'bye' });

@@ -3,30 +3,11 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #03050c;
+  background: #07080a;
 }
 
 canvas {
   position: fixed;
   inset: 0;
   display: block;
-}
-
-#level {
-  position: fixed;
-  top: 12px;
-  left: 14px;
-  font: 200 15px/1 'Helvetica Neue', -apple-system, sans-serif;
-  letter-spacing: 0.12em;
-  color: rgba(220, 235, 255, 0.6);
-  pointer-events: none;
-  user-select: none;
-}
-
-#flash {
-  position: fixed;
-  inset: 0;
-  background: #fff;
-  opacity: 0;
-  pointer-events: none;
 }

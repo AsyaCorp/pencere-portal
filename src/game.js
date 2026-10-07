@@ -1,10 +1,17 @@
 export const BALL_R = 14;
-// The target is a black hole: STAR_R is its shadow radius, PULL_R the reach of
-// its gravity, HORIZON the distance at which the ball is swallowed.
-export const STAR_R = 26;
+// The target is a docking port: STAR_R is its reticle radius, PULL_R the range
+// at which it locks on, HORIZON the distance at which the probe docks.
+export const STAR_R = 18;
 export const PULL_R = 150;
-const HORIZON = 16;
+const HORIZON = 10;
+// A lock is kept until docking unless the probe drifts this far away.
+const LOCK_RELEASE = 260;
+export const DOCK_HOLD = 1.5;
 export const TRAIL_LEN = 48;
+// Launch and nudge headings keep this far from the axes, otherwise the probe
+// can bounce along one line forever.
+const MIN_AXIS_ANGLE = (15 * Math.PI) / 180;
+const STUCK_AFTER = 20;
 
 const BOUNCE_DAMP = 0.9;
 // After a damped bounce the ball eases back to its cruise speed, so it keeps
@@ -84,12 +91,26 @@ export function createState(screen, home) {
     star: placeStar(screen, home, null),
     ball: { x: home.x + home.w / 2, y: home.y + home.h / 2, vx: 0, vy: 0, active: false },
     trail: [],
+    hold: 0,
     t: Date.now(),
   };
 }
 
+function offAxis(a) {
+  const q = Math.PI / 2;
+  const tau = Math.PI * 2;
+  const n = ((a % tau) + tau) % tau;
+  const quadrant = Math.floor(n / q);
+  const within = Math.min(Math.max(n - quadrant * q, MIN_AXIS_ANGLE), q - MIN_AXIS_ANGLE);
+  return quadrant * q + within;
+}
+
+function randomHeading() {
+  return Math.floor(Math.random() * 4) * (Math.PI / 2) + MIN_AXIS_ANGLE + Math.random() * (Math.PI / 2 - 2 * MIN_AXIS_ANGLE);
+}
+
 export function launch(state, home) {
-  const a = Math.random() * Math.PI * 2;
+  const a = randomHeading();
   const s = cruiseSpeed(state.level);
   state.ball = {
     x: home.x + home.w / 2,
@@ -97,8 +118,10 @@ export function launch(state, home) {
     vx: Math.cos(a) * s,
     vy: Math.sin(a) * s,
     active: true,
+    locked: false,
   };
   state.trail = [];
+  state.hold = 0;
 }
 
 export function reset(state, screen, home) {
@@ -130,30 +153,30 @@ function stepBall(b, rects, h) {
   return hit;
 }
 
-// Inside PULL_R the velocity is steered toward an inward spiral: the tangential
-// part keeps the ball's current orbit direction, the radial part grows as it
-// nears the centre.
-function pull(b, hole, h) {
-  const dx = hole.x - b.x;
-  const dy = hole.y - b.y;
+// Once locked, the velocity eases toward a straight run at the port that slows
+// down on final approach, which bends the path into a soft curve.
+function approach(b, dock, h) {
+  const dx = dock.x - b.x;
+  const dy = dock.y - b.y;
   const d = Math.hypot(dx, dy);
-  if (d >= PULL_R || d < 1e-3) return false;
-  const k = 1 - d / PULL_R;
-  const ux = dx / d;
-  const uy = dy / d;
-  const spin = Math.sign(b.vy * ux - b.vx * uy) || 1;
-  const vt = 520 * (0.9 + 0.7 * k) * Math.min(1, d / 30);
-  const vr = 60 + 170 * k;
-  const ex = -uy * spin * vt + ux * vr;
-  const ey = ux * spin * vt + uy * vr;
-  const blend = 1 - Math.exp(-h * (45 + 300 * k));
-  b.vx += (ex - b.vx) * blend;
-  b.vy += (ey - b.vy) * blend;
-  return true;
+  if (d < 1e-3) return;
+  const k = 1 - Math.min(1, d / PULL_R);
+  const speed = 110 + 300 * (1 - k);
+  const blend = 1 - Math.exp(-h * (10 + 30 * k));
+  b.vx += ((dx / d) * speed - b.vx) * blend;
+  b.vy += ((dy / d) * speed - b.vy) * blend;
 }
 
-// world: { rects, home, screen, owner } — owner is the id of the window the
-// ball currently lives in; it is kept between frames by the leader.
+function nudge(b) {
+  const s = Math.hypot(b.vx, b.vy);
+  const turn = (Math.random() < 0.5 ? -1 : 1) * ((10 + Math.random() * 15) * Math.PI) / 180;
+  const a = offAxis(Math.atan2(b.vy, b.vx) + turn);
+  b.vx = Math.cos(a) * s;
+  b.vy = Math.sin(a) * s;
+}
+
+// world: { rects, home, screen, owner, sinceHandoff } — owner is the id of the
+// window the ball currently lives in; world is kept between frames by the leader.
 export function update(state, world, dt) {
   const events = [];
   const b = state.ball;
@@ -164,6 +187,17 @@ export function update(state, world, dt) {
     b.y = world.home.y + world.home.h / 2;
     state.trail.length = 0;
     return events;
+  }
+
+  if (state.hold > 0) {
+    state.hold = Math.max(0, state.hold - dt);
+    return events;
+  }
+
+  world.sinceHandoff = (world.sinceHandoff ?? 0) + dt;
+  if (world.sinceHandoff > STUCK_AFTER && !b.locked) {
+    nudge(b);
+    world.sinceHandoff = 0;
   }
 
   // A window was dragged away or closed under the ball: pull it back inside.
@@ -178,12 +212,14 @@ export function update(state, world, dt) {
   const speed = Math.max(Math.hypot(b.vx, b.vy), cruiseSpeed(state.level) * 1.6);
   const steps = Math.min(32, Math.max(1, Math.ceil((speed * dt) / (BALL_R * 0.5))));
   const h = dt / steps;
-  // Gravity only acts when the hole is inside a window, so the spiral stays visible.
-  const holeOpen = inUnion(rects, state.star.x, state.star.y);
-  let pulled = false;
+  // The port only locks on while it is inside a window, so the approach is visible.
+  const dockOpen = inUnion(rects, state.star.x, state.star.y);
+  const dockDist = Math.hypot(state.star.x - b.x, state.star.y - b.y);
+  if (!dockOpen || dockDist > LOCK_RELEASE) b.locked = false;
+  else if (dockDist < PULL_R) b.locked = true;
 
   for (let i = 0; i < steps; i++) {
-    if (holeOpen && pull(b, state.star, h)) pulled = true;
+    if (b.locked) approach(b, state.star, h);
     const hit = stepBall(b, rects, h);
     if (hit) events.push({ kind: 'bounce', x: b.x + hit.nx * BALL_R, y: b.y + hit.ny * BALL_R });
 
@@ -196,7 +232,10 @@ export function update(state, world, dt) {
             kind: 'ripple',
             x: Math.min(Math.max(b.x, cur.x), cur.x + cur.w),
             y: Math.min(Math.max(b.y, cur.y), cur.y + cur.h),
+            from: cur.id,
+            to: next.id,
           });
+          world.sinceHandoff = 0;
         }
         world.owner = next.id;
       }
@@ -207,19 +246,21 @@ export function update(state, world, dt) {
       state.level += 1;
       events.push({ kind: 'win', x: star.x, y: star.y, seed: (Math.random() * 2 ** 31) | 0, level: state.level });
       state.star = placeStar(world.screen, world.home, star);
-      const a = Math.random() * Math.PI * 2;
+      const a = randomHeading();
       const s = cruiseSpeed(state.level);
       b.x = star.x;
       b.y = star.y;
       b.vx = Math.cos(a) * s;
       b.vy = Math.sin(a) * s;
-      pulled = false;
+      b.locked = false;
+      state.hold = DOCK_HOLD;
+      world.sinceHandoff = 0;
       break;
     }
   }
 
   const sp = Math.hypot(b.vx, b.vy);
-  if (sp > 0 && !pulled) {
+  if (sp > 0 && !b.locked && state.hold === 0) {
     const target = cruiseSpeed(state.level);
     const ns = sp + (target - sp) * Math.min(1, dt * CRUISE_EASE);
     b.vx *= ns / sp;
