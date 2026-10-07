@@ -1,0 +1,32 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #03050c;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+}
+
+#level {
+  position: fixed;
+  top: 12px;
+  left: 14px;
+  font: 600 13px/1 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.08em;
+  color: rgba(140, 200, 255, 0.55);
+  pointer-events: none;
+  user-select: none;
+}
+
+#flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
