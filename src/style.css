@@ -16,9 +16,9 @@ canvas {
   position: fixed;
   top: 12px;
   left: 14px;
-  font: 600 13px/1 ui-monospace, Menlo, monospace;
-  letter-spacing: 0.08em;
-  color: rgba(140, 200, 255, 0.55);
+  font: 200 15px/1 'Helvetica Neue', -apple-system, sans-serif;
+  letter-spacing: 0.12em;
+  color: rgba(220, 235, 255, 0.6);
   pointer-events: none;
   user-select: none;
 }

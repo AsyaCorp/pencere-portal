@@ -1,6 +1,10 @@
 export const BALL_R = 14;
+// The target is a black hole: STAR_R is its shadow radius, PULL_R the reach of
+// its gravity, HORIZON the distance at which the ball is swallowed.
 export const STAR_R = 26;
-export const TRAIL_LEN = 30;
+export const PULL_R = 150;
+const HORIZON = 16;
+export const TRAIL_LEN = 48;
 
 const BOUNCE_DAMP = 0.9;
 // After a damped bounce the ball eases back to its cruise speed, so it keeps
@@ -126,6 +130,28 @@ function stepBall(b, rects, h) {
   return hit;
 }
 
+// Inside PULL_R the velocity is steered toward an inward spiral: the tangential
+// part keeps the ball's current orbit direction, the radial part grows as it
+// nears the centre.
+function pull(b, hole, h) {
+  const dx = hole.x - b.x;
+  const dy = hole.y - b.y;
+  const d = Math.hypot(dx, dy);
+  if (d >= PULL_R || d < 1e-3) return false;
+  const k = 1 - d / PULL_R;
+  const ux = dx / d;
+  const uy = dy / d;
+  const spin = Math.sign(b.vy * ux - b.vx * uy) || 1;
+  const vt = 520 * (0.9 + 0.7 * k) * Math.min(1, d / 30);
+  const vr = 60 + 170 * k;
+  const ex = -uy * spin * vt + ux * vr;
+  const ey = ux * spin * vt + uy * vr;
+  const blend = 1 - Math.exp(-h * (45 + 300 * k));
+  b.vx += (ex - b.vx) * blend;
+  b.vy += (ey - b.vy) * blend;
+  return true;
+}
+
 // world: { rects, home, screen, owner } — owner is the id of the window the
 // ball currently lives in; it is kept between frames by the leader.
 export function update(state, world, dt) {
@@ -149,11 +175,15 @@ export function update(state, world, dt) {
     }
   }
 
-  const speed = Math.hypot(b.vx, b.vy);
-  const steps = Math.min(24, Math.max(1, Math.ceil((speed * dt) / (BALL_R * 0.5))));
+  const speed = Math.max(Math.hypot(b.vx, b.vy), cruiseSpeed(state.level) * 1.6);
+  const steps = Math.min(32, Math.max(1, Math.ceil((speed * dt) / (BALL_R * 0.5))));
   const h = dt / steps;
+  // Gravity only acts when the hole is inside a window, so the spiral stays visible.
+  const holeOpen = inUnion(rects, state.star.x, state.star.y);
+  let pulled = false;
 
   for (let i = 0; i < steps; i++) {
+    if (holeOpen && pull(b, state.star, h)) pulled = true;
     const hit = stepBall(b, rects, h);
     if (hit) events.push({ kind: 'bounce', x: b.x + hit.nx * BALL_R, y: b.y + hit.ny * BALL_R });
 
@@ -173,19 +203,23 @@ export function update(state, world, dt) {
     }
 
     const star = state.star;
-    if (Math.hypot(b.x - star.x, b.y - star.y) < BALL_R + STAR_R * 0.85) {
+    if (Math.hypot(b.x - star.x, b.y - star.y) < HORIZON) {
       state.level += 1;
       events.push({ kind: 'win', x: star.x, y: star.y, seed: (Math.random() * 2 ** 31) | 0, level: state.level });
       state.star = placeStar(world.screen, world.home, star);
-      const k = cruiseSpeed(state.level) / (Math.hypot(b.vx, b.vy) || 1);
-      b.vx *= k;
-      b.vy *= k;
+      const a = Math.random() * Math.PI * 2;
+      const s = cruiseSpeed(state.level);
+      b.x = star.x;
+      b.y = star.y;
+      b.vx = Math.cos(a) * s;
+      b.vy = Math.sin(a) * s;
+      pulled = false;
       break;
     }
   }
 
   const sp = Math.hypot(b.vx, b.vy);
-  if (sp > 0) {
+  if (sp > 0 && !pulled) {
     const target = cruiseSpeed(state.level);
     const ns = sp + (target - sp) * Math.min(1, dt * CRUISE_EASE);
     b.vx *= ns / sp;

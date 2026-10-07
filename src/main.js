@@ -2,6 +2,7 @@ import './style.css';
 import { createSync, readRect } from './sync.js';
 import { createState, launch, reset, update } from './game.js';
 import { createScene } from './scene.js';
+import { COLLAPSE } from './world/effects.js';
 
 // A fresh window listens for a moment before it may lead, so it picks up the
 // running game instead of broadcasting a brand new one over it.
@@ -54,7 +55,11 @@ function onMessage(msg) {
 function showFx(fx) {
   scene.addFx(fx);
   if (fx.kind === 'win') {
-    const anim = flashEl.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 650, easing: 'ease-out' });
+    const anim = flashEl.animate([{ opacity: 0.85 }, { opacity: 0 }], {
+      duration: 650,
+      delay: COLLAPSE * 1000,
+      easing: 'ease-out',
+    });
     anim.currentTime = Math.max(0, Date.now() - fx.t);
   }
 }
@@ -141,7 +146,7 @@ function frame(t) {
   }
   wasLeader = leader;
 
-  scene.render(rect, viewOf(now, leader), now);
+  scene.render(rect, viewOf(now, leader), now, sync.rects());
   levelEl.textContent = state ? String(state.level) : '';
   requestAnimationFrame(frame);
 }
