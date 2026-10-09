@@ -67,7 +67,9 @@ Kurallar: Sonda yalnız pencerelerin içinde var olabilir. Kenara çarptığınd
 
 | Tuş   | İş                                                    |
 | ----- | ----------------------------------------------------- |
-| Space | Askerleri başlat (sahne başta durur)                  |
+| Fare  | Nişan al; sol tık basılı: kanca at ve kendini çek     |
+| A / D | Yerde yürü, havada yön ver (ok tuşları da çalışır)    |
+| Space | Gaz püskürt (fare yönüne itki, kısa bekleme süreli)   |
 | R     | Titan sahnesini sıfırla                               |
 | N     | Yeni pencere aç (açık modda)                          |
 | T     | HUD moduna dön                                        |
@@ -82,17 +84,17 @@ Kurallar: Sonda yalnız pencerelerin içinde var olabilir. Kenara çarptığınd
 
 **Karakterler:**
 
-- **Askerler.** Rig'li ve animasyonlu insan modeli; yeşil pelerin koşarken ve salınırken dalgalanır. Kanca halatları ve her salınışta gaz püskürmesi var.
+- **Levi.** Oyuncunun yönettiği rig'li ve animasyonlu asker; yeşil pelerin koşarken ve salınırken dalgalanır. Kanca halatı ve her gaz püskürmesinde iz var.
 - **Devler (saf titanlar).** Gerçekçi insan bedenleri: çıplak ten, uzun kollar, kimi iri kimi küçük kafa, yüzlerinde fazla geniş, donuk bir sırıtma (yüz blendshape'leri abartılarak). Yürüme, koşma ve bekleme animasyonları bu iskelete dünya uzayında yeniden hedeflenir. Başları yavaşça yana düşer ve izleyiciye döner.
 - **Colossal Titan.** Gerçek bir 3B kafa taramasının üzerine derisiz kas dokusu (yüzün ortasından yelpaze gibi açılan lifler), yanaklarda açıkta dişler ve kızıl parlayan gözler.
 
-**Kurallar:**
+**Oyun: Ense Avı**
 
-- **Askerler.** 5 asker, zemini olan en soldaki pencerede başlar ve kuleye koşar. Önlerinde uçurum varsa ve karşı pencerede 280 px içinde tutunacak bir yapı (çatı, kule, sur kenarı) görünüyorsa kanca atıp ipe tutunarak karşıya salınırlar. Yapı daha uzaktaysa kenarda bekleyip el sallarlar.
-- **Devler.** 4 dev, askerlerin arkasından en yakın askere yürür; ağızlarından ve enselerinden buhar çıkar. Arada biri bir askeri fark edip koşmaya başlar. Atlayamaz, kanca atamazlar: uçuruma gelince kenarda durur, kolunu boşluğa uzatıp öfkeyle sallanırlar.
-- **Pencerelerin etkisi.** Pencereleri ayırırsan devler geride kalır. Birleştirirsen zemin birleşir ve devler de geçer.
-- **Yakalanma.** Dev bir askere yetişirse asker bir buhar bulutunda kaybolur. Sol üstteki `SOLDIERS n/5` sayacı düşer. Üçten az asker kalırsa sahne 3 sn sonra sıfırlanır.
-- **Final.** Üç asker kulenin tepesine çıkınca zemin sarsılır, gökyüzü kararır ve surun arkasından Colossal Titan yükselir. Yüzü ve omuzları birden fazla pencereye bölünmüş görünür; yalnız gözleri hafif kızıl parlar ve her yanından buhar yükselir. Ardından bütün pencerelerde aynı anda beyaz-turuncu şok dalgası, buhar patlaması ve sarsıntı gelir; 2 sn sonra sahne sıfırlanır. Her şey ortak saatle zamanlanır.
+- **Kanca.** Kanca yalnız bir pencerenin içinde görünen yapılara (ev, çatı, kule, sur, devler) tutunur. Nişangâh tıklamanın tutup tutmayacağını gösterir. Menzil ekranın yaklaşık %60'ı. Pencereler arasındaki boşluk uçurumdur; düşen Levi bir can kaybeder.
+- **Ense.** Levi bir devin ensesinden yeterli hızla geçerse onu keser: kısa bir ağır çekim olur, sayaç artar. Yavaş geçiş saymaz; gazla ve kancayla hız kazanmak gerekir.
+- **Devler.** Aynı anda en fazla 3 dev, pencerelerin verdiği zeminde Levi'ye yürür ya da koşar. Atlayamaz, kanca atamazlar; uçuruma gelince kenarda durup kol sallarlar. Pencereleri ayırırsan geride kalırlar, birleştirirsen zemin birleşir ve geçerler. Bir dev Levi'yi yakalarsa can gider.
+- **Can ve skor.** 3 can. 5 ense kesilince Colossal Titan surun arkasından yükselir; yüzü ve omuzları birden fazla pencereye bölünür.
+- **Final.** Colossal hazır olduktan sonra 25 sn içinde ensesine ulaşıp keserseniz kazanırsınız. Süre dolarsa bütün pencerelerde beyaz-turuncu şok dalgası, buhar ve sarsıntı gelir ve oyun kaybedilir. Oyun sonunda sahne birkaç saniye sonra sıfırlanır. Her şey ortak saatle zamanlanır; simülasyonu lider pencere yürütür, diğerleri onun durumunu çizer.
 
 ### Reels çekimi (dikey 9:16)
 
